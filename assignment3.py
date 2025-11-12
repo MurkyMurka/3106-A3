@@ -4,7 +4,7 @@ class td_qlearning:
 
   # possible actions; used for finding a* in policy()
   possible_actions = [1, 2, 3]
-
+  state_actions_each_trial = []
   alpha = 0.10
   gamma = 0.90
 
@@ -22,6 +22,7 @@ class td_qlearning:
         if file.endswith(".csv"):
           file_path = os.path.join(root, file)
           with open(file_path, 'r') as f:
+            state_actions = []
             for line in f:
               # skip empty lines
               line = line.strip()
@@ -39,8 +40,19 @@ class td_qlearning:
                 action = int(value_str)
               except ValueError:
                 action = value_str
+              state_actions.append((state, action))
+            
+            self.state_actions_each_trial.append(state_actions)  
+    
+    # compute qvalue for qfunction (TODO 2/2)
+    trials = len(self.state_actions_each_trial)
+    for i in range(trials):
+      pairs = self.state_actions_each_trial[i]
+      for p in pairs:
+        self.qfunction[p] = self.reward(p[0])
 
-              # compute qvalue for qfunction (TODO 2/2)
+
+
 
   def qvalue(self, state, action):
     # state is a string representation of a state
@@ -65,7 +77,7 @@ class td_qlearning:
     # Return the optimal action (as an integer) under the learned policy
     return best_action
   
-  def reward(state):
+  def reward(self,state):
     # helper function to calculate the reward value of a state
     # assumes state is a tuple (c_bag, c_agent, c_opponent, winner)
 
@@ -86,7 +98,7 @@ if __name__ == "__main__":
     for key, value in learner.qfunction.items():
         print(f"{key}: {value}")
 
-    # Example: test a state and get the best action
-    example_state = ('13', '0', '0', '-')
-    best_action = learner.policy(example_state)
-    print(f"\nBest action for state {example_state}: {best_action}")
+    # # Example: test a state and get the best action
+    # example_state = ('13', '0', '0', '-')
+    # best_action = learner.policy(example_state)
+    # print(f"\nBest action for state {example_state}: {best_action}")
