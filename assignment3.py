@@ -2,20 +2,18 @@ import os
 
 class td_qlearning:
 
-  # possible actions; used for finding a* in policy()
-  possible_actions = [1, 2, 3] # number of coins to take from bag
-  state_actions_each_trial = []
-  explored_state_action_pairs = []
-  alpha = 0.10
-  gamma = 0.90
-  # define convergence
-  threshold = 0.001 # minimum change needed to be observed to continue updates
-
-  # store Q-function in class variable (a dictionary with key:(state, action) value:qvalue)
-  qfunction = {}
-
   def __init__(self, directory):
     # directory is the path to a directory containing trials through state space
+
+    self.possible_actions = [1, 2, 3] # number of coins to take from bag
+    self.state_actions_each_trial = []
+    self.explored_state_action_pairs = []
+    self.alpha = 0.10
+    self.gamma = 0.90
+    self.threshold = 0.001 # minimum change needed to be observed to continue Q-value update iterations
+
+    # store Q-function in an instance variable (a dictionary with key:(state, action) value:qvalue)
+    self.qfunction = {}
 
     # learn Q-function from CSV file(s)
     for root, dirs, files in os.walk(directory):
@@ -32,24 +30,25 @@ class td_qlearning:
 
               # parse state and action from line
               state_str, value_str = line.split(',')
-              # store state as variables in a tuple
+              # store state in a tuple
               # (c_bag, c_agent, c_opponent, winner)
               s = tuple(state_str.split('/'))
               state = (int(s[0]), int(s[1]), int(s[2]), s[3])
               
-
-              # convert action part to int, or keep as - for terminal state
+              # convert action part to int, or keep as '-' for terminal state
               try:
                 action = int(value_str)
               except ValueError:
                 action = '-'
               state_actions.append((state, action))
             
+            # add state-action pairs to a list of trials
             self.state_actions_each_trial.append(state_actions)
     
+    # maintain a set of explored state-action pairs 
     self.explored_state_action_pairs = list(set([pair for sublist in self.state_actions_each_trial for pair in sublist]))
     
-    # initilize Q(s,a)
+    # initilize all Q(s,a)
     for trial in self.state_actions_each_trial:
       for (state, action) in trial:          
           self.qfunction[(state, action)] = self.reward(state)
@@ -69,6 +68,9 @@ class td_qlearning:
             max_diff = max(abs(diff), max_diff)
 
   def temporal_difference_qlearning(self, prev_state, prev_action, current_state):
+    # performs temporal difference qlearning
+    # returns the error term for use in affirming convergence
+
     # consider possible actions
     action_qvalues = []
     for action in self.possible_actions:
@@ -109,7 +111,7 @@ class td_qlearning:
     for action in self.possible_actions[1:]:
       # only consider legal moves
       if (state[0] >= action):
-        if self.qvalue(state, action) > self.qvalue(state, best_action):
+        if self.qvalue(state, action) >= self.qvalue(state, best_action):
           best_action = action
 
     # Return the optimal action (as an integer) under the learned policy
@@ -127,50 +129,94 @@ class td_qlearning:
       case _:
         return 0
       
-# test the class
-if __name__ == "__main__":
-    learner = td_qlearning("Examples/Example1/Trials")  # folder containing CSVs
-    # print(len(td_qlearning.explored_state_action_pairs))
+# for testing the class
+# if __name__ == "__main__":
+#     learner = td_qlearning("Examples/Example3/Trials")  # folder containing CSVs
+#     # print(len(td_qlearning.explored_state_action_pairs))
     
-    # print all learned Q-values
-    print("Learned Q-function:")
-    for key, value in learner.qfunction.items():
-        print(f"{key}: {value}")
+#     # print all learned Q-values
+#     print("Learned Q-function:")
+#     for key, value in learner.qfunction.items():
+#         print(f"{key}: {value}")
 
-    #Example: test a state and get the best action
+#     # print("\nTest policy\n")
 
-    # test policy
+#     # example0
+#     # print(learner.policy((11, 1, 1, '-')))
 
-    print("\nTest policy\n")
+#     # example1
+#     # print(learner.policy((6, 1, 6, '-')))
+#     # print(learner.policy((0, 7, 6, 'O')))
+#     # print(learner.policy((1, 8, 4, '-')))
+#     # print(learner.policy((1, 6, 6, '-')))
+#     # print(learner.policy((4, 5, 4, '-')))
+#     # print(learner.policy((2, 8, 3, '-')))
+#     # print(learner.policy((9, 2, 2, '-')))
+#     # print(learner.policy((3, 6, 4, '-')))
+#     # print(learner.policy((1, 5, 7, '-')))
+#     # print(learner.policy((1, 9, 3, '-')))
 
-    # example0
+#     # example2
+#     # print(learner.policy((8, 3, 2, '-')))
+#     # print(learner.policy((1, 8, 4, '-')))
+#     # print(learner.policy((2, 8, 3, '-')))
+#     # print(learner.policy((13, 0, 0, '-')))
+#     # print(learner.policy((4, 4, 5, '-')))
+#     # print(learner.policy((8, 2, 3, '-')))
+#     # print(learner.policy((11, 0, 2, '-')))
+#     # print(learner.policy((0, 3, 10, 'O')))
+#     # print(learner.policy((10, 0, 3, '-')))
+#     # print(learner.policy((5, 5, 3, '-')))
 
+#     # example3
+#     # print(learner.policy((1, 7, 5, '-')))
+#     # print(learner.policy((9, 1, 3, '-')))
+#     # print(learner.policy((4, 4, 5, '-')))  
+#     # print(learner.policy((4, 3, 6, '-')))   
+#     # print(learner.policy((6, 3, 4, '-')))   
+#     # print(learner.policy((2, 4, 7, '-')))   
+#     # print(learner.policy((1, 7, 5, '-')))   
+#     # print(learner.policy((4, 6, 3, '-')))   
+#     # print(learner.policy((13, 0, 0, '-')))  
+#     # print(learner.policy((2, 4, 7, '-')))   
 
-    # example1
-    print(learner.policy((6, 1, 6, '-')))
-    print(learner.policy((0, 7, 6, 'O')))
-    print(learner.policy((1, 8, 4, '-')))
-    print(learner.policy((1, 6, 6, '-')))
-    print(learner.policy((4, 5, 4, '-')))
-    print(learner.policy((2, 8, 3, '-')))
-    print(learner.policy((9, 2, 2, '-')))
-    print(learner.policy((3, 6, 4, '-')))
-    print(learner.policy((1, 5, 7, '-')))
-    print(learner.policy((1, 9, 3, '-')))
+#     # print("\nTest qvalue\n")
 
-    print("\nTest qvalue\n")
+#     # example0
+#     # print(learner.qvalue((8,3,2,'-'),2))
 
-    # example0
-    # print(learner.qvalue((8,3,2,'-'),2))
+#     # example1
+#     # print(learner.qvalue((6, 1, 6, '-'), 2))
+#     # print(learner.qvalue((0, 7, 6, 'O'), 0))
+#     # print(learner.qvalue((1, 8, 4, '-'), 1))
+#     # print(learner.qvalue((1, 6, 6, '-'), 1))
+#     # print(learner.qvalue((4, 5, 4, '-'), 3))
+#     # print(learner.qvalue((2, 8, 3, '-'), 2))
+#     # print(learner.qvalue((9, 2, 2, '-'), 3))
+#     # print(learner.qvalue((3, 6, 4, '-'), 2))
+#     # print(learner.qvalue((1, 5, 7, '-'), 1))
+#     # print(learner.qvalue((1, 9, 3, '-'), 1))
 
-    # example1
-    print(learner.qvalue((6, 1, 6, '-'), 2))
-    print(learner.qvalue((0, 7, 6, 'O'), 0))
-    print(learner.qvalue((1, 8, 4, '-'), 1))
-    print(learner.qvalue((1, 6, 6, '-'), 1))
-    print(learner.qvalue((4, 5, 4, '-'), 3))
-    print(learner.qvalue((2, 8, 3, '-'), 2))
-    print(learner.qvalue((9, 2, 2, '-'), 3))
-    print(learner.qvalue((3, 6, 4, '-'), 2))
-    print(learner.qvalue((1, 5, 7, '-'), 1))
-    print(learner.qvalue((1, 9, 3, '-'), 1))
+#     # example2
+#     # print(learner.qvalue((8, 3, 2, '-'), 3))   
+#     # print(learner.qvalue((1, 8, 4, '-'), 1))   
+#     # print(learner.qvalue((2, 8, 3, '-'), 2))   
+#     # print(learner.qvalue((13, 0, 0, '-'), 1))  
+#     # print(learner.qvalue((4, 4, 5, '-'), 1))   
+#     # print(learner.qvalue((8, 2, 3, '-'), 3))   
+#     # print(learner.qvalue((11, 0, 2, '-'), 2))  
+#     # print(learner.qvalue((0, 3, 10, 'O'), 0))  
+#     # print(learner.qvalue((10, 0, 3, '-'), 3))  
+#     # print(learner.qvalue((5, 5, 3, '-'), 1))   
+
+#     # example3
+#     # print(learner.qvalue((1, 7, 5, '-'), 1))   
+#     # print(learner.qvalue((9, 1, 3, '-'), 3))   
+#     # print(learner.qvalue((4, 4, 5, '-'), 2))   
+#     # print(learner.qvalue((4, 3, 6, '-'), 1))   
+#     # print(learner.qvalue((6, 3, 4, '-'), 3))   
+#     # print(learner.qvalue((2, 4, 7, '-'), 1))   
+#     # print(learner.qvalue((1, 7, 5, '-'), 1))   
+#     # print(learner.qvalue((4, 6, 3, '-'), 2))   
+#     # print(learner.qvalue((13, 0, 0, '-'), 2))  
+#     # print(learner.qvalue((2, 4, 7, '-'), 2))
