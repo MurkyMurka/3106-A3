@@ -10,7 +10,7 @@ class td_qlearning:
     self.explored_state_action_pairs = []
     self.alpha = 0.10
     self.gamma = 0.90
-    self.threshold = 0.001 # minimum change needed to be observed to continue Q-value update iterations
+    self.threshold = 0.00000000000001 # minimum change needed to be observed to continue Q-value update iterations
 
     # store Q-function in an instance variable (a dictionary with key:(state, action) value:qvalue)
     self.qfunction = {}
@@ -131,7 +131,7 @@ class td_qlearning:
       
 # for testing the class
 # if __name__ == "__main__":
-#     learner = td_qlearning("Examples/Example3/Trials")  # folder containing CSVs
+#     learner = td_qlearning("Examples/Example2/Trials")  # folder containing CSVs
 #     # print(len(td_qlearning.explored_state_action_pairs))
     
 #     # print all learned Q-values
